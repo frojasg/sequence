@@ -1,5 +1,11 @@
 defmodule Sequence.Server do
   use GenServer
+  @vsn "1"
+
+  require Logger
+
+  defmodule State, do: defstruct current_number: 0, stash_pid: nil, delta: 1
+
 
   def start_link(stash_pid) do
     GenServer.start_link(__MODULE__, stash_pid, name: __MODULE__)
@@ -21,23 +27,29 @@ defmodule Sequence.Server do
   # GenServer implementation
   def init(stash_pid) do
     current_number = Sequence.Stash.get_value stash_pid
-    {:ok, {current_number, stash_pid}}
+    {:ok, %State{current_number: current_number, stash_pid: stash_pid}}
   end
 
-  def handle_call(:next_number, _from, {current_number, stash_pid}) do
-    {:reply, current_number, {current_number+1, stash_pid}}
+  def handle_call(:next_number, _from, state) do
+    {
+      :reply,
+      state.current_number,
+      %{state | current_number: state.current_number + state.delta }
+    }
   end
 
-  def handle_call(:get_stash, _from, state = {_, stash_pid}) do
-    {:reply, stash_pid, state}
+  def handle_call(:get_stash, _from, state) do
+    {:reply, state.stash_pid, state}
   end
 
   def handle_call(_request, _from, state) do
     {:reply, :ok, state}
   end
 
-  def handle_cast({:increment_number, delta}, {current_number, stash_pid}) do
-    {:noreply, {current_number + delta, stash_pid}}
+  def handle_cast({:increment_number, delta}, state) do
+    {:noreply,
+      %{state | current_number: state.current_number + delta, delta: delta}
+    }
   end
 
   def handle_cast(_msg, state) do
@@ -54,5 +66,14 @@ defmodule Sequence.Server do
 
   def format_status(_reason, [ _pdict, state ]) do
     [data: [{'State', "My current state is '#{inspect state}', and I'm happy"}]]
+  end
+
+  def code_change("0", old_state = { current_number, stash_pid}, _extra) do
+    new_state = %State{current_number: current_number, stash_pid: stash_pid, delta: 1}
+
+    Logger.info "Changing code from 0 to 1"
+    Logger.info inspect(old_state)
+    Logger.info inspect(new_state)
+    {:ok, new_state}
   end
 end
