@@ -22,12 +22,11 @@ defmodule Sequence.Stash do
     {:reply, current_value, current_value}
   end
 
-
   def handle_cast({:save_value, value}, _current_value) do
     {:noreply, value}
   end
 
-  def handle_cast(msg, state) do
+  def handle_cast(_msg, state) do
     {:noreply, state}
   end
 

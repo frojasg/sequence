@@ -40,7 +40,7 @@ defmodule Sequence.Server do
     {:noreply, {current_number + delta, stash_pid}}
   end
 
-  def handle_cast(msg, state) do
+  def handle_cast(_msg, state) do
     {:noreply, state}
   end
 
