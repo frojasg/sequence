@@ -13,6 +13,10 @@ defmodule Sequence.Server do
     GenServer.cast __MODULE__, {:increment_number, delta}
   end
 
+  def get_stash do
+    GenServer.call __MODULE__, :get_stash
+  end
+
   #####
   # GenServer implementation
   def init(stash_pid) do
@@ -22,6 +26,10 @@ defmodule Sequence.Server do
 
   def handle_call(:next_number, _from, {current_number, stash_pid}) do
     {:reply, current_number, {current_number+1, stash_pid}}
+  end
+
+  def handle_call(:get_stash, _from, state = {_, stash_pid}) do
+    {:reply, stash_pid, state}
   end
 
   def handle_call(_request, _from, state) do

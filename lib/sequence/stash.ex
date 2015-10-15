@@ -22,13 +22,6 @@ defmodule Sequence.Stash do
     {:reply, current_value, current_value}
   end
 
-  def handle_call(:get_value, _from, _state) do
-    {:noreply, _state}
-  end
-
-  def handle_call(_request, _from, state) do
-    {:reply, :ok, state}
-  end
 
   def handle_cast({:save_value, value}, _current_value) do
     {:noreply, value}
