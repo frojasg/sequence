@@ -18,23 +18,13 @@ defmodule Sequence.Stash do
 
   #####
   # GenServer implementation
-
-  def init(state) do
-    {:ok, state}
-  end
   def handle_call(:get_value, _from, current_value) do
     {:reply, current_value, current_value}
-  end
-
-  def handle_call(:stop, _from, state) do
-    {:stop, :normal, :ok, state}
   end
 
   def handle_cast({:save_value, value}, _current_value) do
     {:noreply, value}
   end
-
-
 
   def handle_cast(_msg, state) do
     {:noreply, state}
