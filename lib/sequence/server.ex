@@ -4,11 +4,11 @@ defmodule Sequence.Server do
 
   require Logger
 
-  defmodule State, do: defstruct current_number: 0, stash_pid: nil, delta: 1
+  defmodule State, do: defstruct current_number: 0, delta: 1
 
 
-  def start_link(stash_pid) do
-    GenServer.start_link(__MODULE__, stash_pid, name: __MODULE__)
+  def start_link() do
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   def next_number do
@@ -25,9 +25,9 @@ defmodule Sequence.Server do
 
   #####
   # GenServer implementation
-  def init(stash_pid) do
-    current_number = Sequence.Stash.get_value stash_pid
-    {:ok, %State{current_number: current_number, stash_pid: stash_pid}}
+  def init(_) do
+    current_number = Sequence.Stash.get_value
+    {:ok, %State{current_number: current_number}}
   end
 
   def handle_call(:next_number, _from, state) do
@@ -38,9 +38,6 @@ defmodule Sequence.Server do
     }
   end
 
-  def handle_call(:get_stash, _from, state) do
-    {:reply, state.stash_pid, state}
-  end
 
   def handle_call(_request, _from, state) do
     {:reply, :ok, state}
@@ -60,8 +57,8 @@ defmodule Sequence.Server do
     {:noreply, state}
   end
 
-  def terminate(_reason, {current_number, stash_pid}) do
-    Sequence.Stash.save_value stash_pid, current_number
+  def terminate(_reason, state) do
+    Sequence.Stash.save_value state.current_number
   end
 
   def format_status(_reason, [ _pdict, state ]) do
@@ -69,7 +66,7 @@ defmodule Sequence.Server do
   end
 
   def code_change("0", old_state = { current_number, stash_pid}, _extra) do
-    new_state = %State{current_number: current_number, stash_pid: stash_pid, delta: 1}
+    new_state = %State{current_number: current_number, delta: 1}
 
     Logger.info "Changing code from 0 to 1"
     Logger.info inspect(old_state)
