@@ -5,36 +5,26 @@ defmodule Sequence.Stash do
   # External API
 
   def start_link(current_number) do
-    {:ok, _pid} = GenServer.start_link(__MODULE__, current_number)
+    {:ok, _pid} = GenServer.start_link(__MODULE__, current_number, name: __MODULE__)
   end
 
-  def save_value(pid, value) do
-    GenServer.cast pid, {:save_value, value}
+  def save_value(value) do
+    GenServer.cast __MODULE__, {:save_value, value}
   end
 
-  def get_value(pid) do
-    GenServer.call pid, :get_value
+  def get_value() do
+    GenServer.call __MODULE__, :get_value
   end
 
   #####
   # GenServer implementation
-
-  def init(state) do
-    {:ok, state}
-  end
   def handle_call(:get_value, _from, current_value) do
     {:reply, current_value, current_value}
-  end
-
-  def handle_call(:stop, _from, state) do
-    {:stop, :normal, :ok, state}
   end
 
   def handle_cast({:save_value, value}, _current_value) do
     {:noreply, value}
   end
-
-
 
   def handle_cast(_msg, state) do
     {:noreply, state}
