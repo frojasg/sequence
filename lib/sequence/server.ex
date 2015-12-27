@@ -8,12 +8,20 @@ defmodule Sequence.Server do
   end
 
   def init([sup, initial_number]) do
-    Logger.info "init Sequence.Server #{inspect sup} #{initial_number}"
-    # {:ok, stash} = Supervisor.start_child(sup, worker(Sequence.Stash, [initial_number]))
-    {:ok, stash} = Sequence.Supervisor.start_stash(sup, initial_number)
-    Logger.info "#stash pid {inspect stash}"
-    {:ok, worker_sup} = Sequence.Supervisor.start_worker_sup(sup, stash)
-    Logger.info "#stash pid {inspect worker_sup}"
-    # Supervisor.start_child(sup, supervisor(Sequence.WorkerSupervisor, [stash]))
+    Logger.info "Sequence.Server.init"
+    send self(), :start_servers
+    {:ok, [sup, initial_number]}
+  end
+
+  def handle_info(:start_servers, state = [sup, initial_number]) do
+    {:ok, stash} = Sequence.Supervisor.start_stash(initial_number)
+    {:ok, worker_sup} = Sequence.Supervisor.start_worker_sup(stash)
+    Process.monitor(stash)
+    Process.monitor(worker_sup)
+    {:noreply, [sup, initial_number]}
+  end
+
+  def handle_info({:DOWN, ref, :process, pid, reason}, state) do
+    {:stop, :error, state}
   end
 end

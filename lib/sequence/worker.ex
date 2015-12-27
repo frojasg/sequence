@@ -65,8 +65,9 @@ defmodule Sequence.Worker do
     {:noreply, state}
   end
 
-  def terminate(_reason, {current_number, stash_pid}) do
-    Sequence.Stash.save_value stash_pid, current_number
+  def terminate(reason, state) do
+    Logger.info "saving value because #{inspect reason} current_number: #{inspect state}"
+    Sequence.Stash.save_value state.stash_pid, state.current_number
   end
 
   def format_status(_reason, [ _pdict, state ]) do

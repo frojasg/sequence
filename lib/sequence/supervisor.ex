@@ -3,18 +3,18 @@ defmodule Sequence.Supervisor do
   require Logger
 
   def start_link(initial_number) do
-    Supervisor.start_link(__MODULE__, [initial_number])
+    Supervisor.start_link(__MODULE__, [initial_number], name: __MODULE__)
   end
 
-  def start_stash(sup, initial_number) do
-    Logger.info "starting stash in #{inspect sup} with #{inspect initial_number}"
-    {:ok, stash} = Supervisor.start_child(sup, worker(Sequence.Stash, [initial_number]))
+  def start_stash(initial_number) do
+    Logger.info "starting stash in #{inspect __MODULE__} with #{inspect initial_number} #{inspect worker(Sequence.Stash, [initial_number])}"
+    {:ok, stash} = Supervisor.start_child(__MODULE__, worker(Sequence.Stash, [initial_number], restart: :temporary))
     Logger.info "stash worked"
     {:ok, stash}
   end
 
-  def start_worker_sup(sup, stash) do
-    Supervisor.start_child(sup, supervisor(Sequence.WorkerSupervisor, [stash]))
+  def start_worker_sup(stash) do
+    Supervisor.start_child(__MODULE__, supervisor(Sequence.WorkerSupervisor, [stash], restart: :temporary))
   end
 
   def init([initial_number]) do
