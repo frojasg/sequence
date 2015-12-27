@@ -1,14 +1,11 @@
 defmodule Sequence.Server do
   use GenServer
-  require Logger
 
   def start_link(sup, initial_number) do
-    Logger.info "start_link Sequence.Supervisor #{inspect sup} #{inspect initial_number}"
     GenServer.start_link(__MODULE__, [sup, initial_number])
   end
 
   def init([sup, initial_number]) do
-    Logger.info "Sequence.Server.init"
     send self(), :start_servers
     {:ok, [sup, initial_number]}
   end
