@@ -5,8 +5,7 @@ defmodule Sequence.Supervisor do
   end
 
   def start_stash(initial_number) do
-    {:ok, stash} = Supervisor.start_child(__MODULE__, worker(Sequence.Stash, [initial_number], restart: :temporary))
-    {:ok, stash}
+    Supervisor.start_child(__MODULE__, worker(Sequence.Stash, [initial_number], restart: :temporary))
   end
 
   def start_worker_sup(stash) do

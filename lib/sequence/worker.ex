@@ -28,14 +28,13 @@ defmodule Sequence.Worker do
   def init(stash_pid) do
     Logger.info "Worker.init"
     Logger.info "stash pid #{inspect stash_pid} alive: #{Process.alive? stash_pid}"
-    current_number = Sequence.Stash.get_value stash_pid
-    {:ok, %State{current_number: current_number, stash_pid: stash_pid}}
+    send self(),:load_value
+    {:ok, %State{stash_pid: stash_pid}}
   end
 
   def handle_call(:next_number, _from, state) do
     {
-      :reply,
-      state.current_number,
+      :reply, state.current_number,
       %{state | current_number: state.current_number + state.delta }
     }
   end
@@ -59,6 +58,11 @@ defmodule Sequence.Worker do
 
   def handle_cast(_msg, state) do
     {:noreply, state}
+  end
+
+  def handle_info(:load_value, state) do
+    current_number = Sequence.Stash.get_value state.stash_pid
+    {:noreply, %{state | current_number: current_number}}
   end
 
   def handle_info(_info, state) do
